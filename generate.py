@@ -1,7 +1,7 @@
 import itertools
 import sys, os
 import encoding
-from encoding import ALL_PEPS, CHG, BULKY
+from encoding import ALL_PEPS, CHG, TOTAL
 from rdkit import Chem
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
 import json
@@ -61,10 +61,9 @@ def create_all_pdbs():
     count = 0
     c2 = 1
     for pep in ALL_PEPS:
-        if "I" in pep:
-            fname = os.path.join(pdb_path, pep + ".pdb")
+        fname = os.path.join(pdb_path, pep + ".pdb")
+        if not os.path.isfile(fname):
             create_peptoid.create_peptoid(pep, filename=fname)
-    
     os.chdir(cur_path)
 
 create_all_pdbs()

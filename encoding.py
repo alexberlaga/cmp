@@ -8,18 +8,17 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdFingerprintGenerator
+from rdkit.Chem.AtomPairs.Pairs import *
+
 from tqdm import tqdm
 import itertools
 from rdkit.DataStructs.cDataStructs import TanimotoSimilarity
 # ----------------------------------------------------------------------------------
-CHG = 'KXHRDE'
-BULKY = 'CLMHFYITVWZ134'
-ALL_PEPS = ["".join(r) for r in itertools.product(["".join(s) for s in itertools.product(CHG, repeat=2)], ["".join(s) for s in itertools.product(BULKY, repeat=2)])]
+CHG = 'KXCDE'
+TOTAL = 'KXHDECLMFYITVWZ134NQ'
+ALL_PEPS = ["".join(r) for r in itertools.product(["".join(s) for s in itertools.product(CHG, repeat=2)], ["".join(s) for s in itertools.product(TOTAL, repeat=2)])]
 ALL_PEPS = [p[0] + p[2] + "G" + p[1] + p[3] + "G" for p in ALL_PEPS]
-CHG_LEN = len(CHG)
-BULKY_LEN = len(BULKY)
 
-SEQ_LEN = 2 * (CHG_LEN + BULKY_LEN)
 
 
 
@@ -39,9 +38,9 @@ def seq_encode(peps):
     encoded_list = []
     for pep in peps:
         encode_0 = one_hot_encoding(pep[0], CHG)
-        encode_1 = one_hot_encoding(pep[1], BULKY)
+        encode_1 = one_hot_encoding(pep[1], TOTAL)
         encode_3 = one_hot_encoding(pep[3], CHG)
-        encode_4 = one_hot_encoding(pep[4], BULKY)
+        encode_4 = one_hot_encoding(pep[4], TOTAL)
         encoded_list.append(np.concatenate([encode_0, encode_1, encode_3, encode_4]))
     return torch.Tensor(encoded_list)
 
@@ -113,4 +112,23 @@ def make_fingerprints():
         # fingerprints[i, 2048:] = seq_encode([pep])
     
     fingerprints = fingerprints[:, ~np.all(fingerprints == 0, axis=0)]
+    if len(np.unique(fingerprints, axis=0)) < len(fingerprints):
+        print(len(np.unique(fingerprints, axis=0)))
+        print("ERROR")
     np.save("fingerprints.npy", fingerprints)
+
+def make_atompair_fingerprints():
+    fingerprints = np.zeros((len(ALL_PEPS), 2048))
+    for i in tqdm(range(len(ALL_PEPS))):
+        pep = ALL_PEPS[i]
+    
+        mol = Chem.MolFromPDBFile("all_pdbs/" + pep + ".pdb")
+        fp1 = GetHashedAtomPairFingerprint(mol)
+        fingerprints[i] = np.array([b for b in fp1])
+        # fingerprints[i, 2048:] = seq_encode([pep])
+    
+    fingerprints = fingerprints[:, ~np.all(fingerprints == 0, axis=0)]
+    if len(np.unique(fingerprints, axis=0)) < len(fingerprints):
+        print(len(np.unique(fingerprints, axis=0)))
+        print("ERROR")
+    np.save("ap_fingerprints.npy", fingerprints)

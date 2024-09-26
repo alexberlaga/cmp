@@ -9,8 +9,25 @@ from scipy.stats import sem
 from encoding import ALL_PEPS
 
 # Path to the SAMS data directory
-TM_PATH = "/project2/andrewferguson/berlaga/activelearning/small_melting_temps"
+TM_PATH = "/project2/andrewferguson/berlaga/activelearning/melting_temps"
 
+DIST_THRESH = 2
+SIZE_THRESH = 1.25
+
+def get_first_big_idx(a, thresh=DIST_THRESH):
+    bool_array = a > thresh
+    if np.any(bool_array):
+        return np.argmax(bool_array)
+    else:
+        return np.inf
+
+def get_first_small_idx(a, thresh=SIZE_THRESH, num_small=10):
+    bool_array1 = a > thresh
+    bool_array2 = a[-num_small:] < thresh
+    if np.any(bool_array1) and np.all(bool_array2):
+        return np.argwhere(bool_array1).flatten()[-1] + 1
+    else:
+        return np.inf
 
 def get_current_round(prev=False):
     """
@@ -62,13 +79,15 @@ def extract_tm(peptoid_string, noise=True):
     """
     
     
-    temp_folder = os.path.join(TM_PATH, peptoid_string, "2_anneal")
+    temp_folder = os.path.join(TM_PATH, peptoid_string, "3_anneal")
     cur_temps = np.zeros(6)
     for j in range(6):
-        if os.path.isfile(os.path.join(temp_folder, str(j)+ '_annealing_output.txt')):
-            temps = np.loadtxt(os.path.join(temp_folder, str(j)+'_annealing_output.txt'))
-            if temps[-1, 3] <= 1.7:
-                cur_temps[j] = temps[-1, 2]
+        colvar = np.loadtxt(os.path.join(temp_folder, str(j)+'_annealing_output.txt'))
+        first_big_idx = np.min((get_first_big_idx(colvar[-100:, 4]), get_first_big_idx(colvar[-100:, 5]), get_first_big_idx(colvar[-100:, 6])))
+        first_small_idx = np.min((get_first_small_idx(colvar[-100:, 1]), get_first_small_idx(colvar[-100:, 2]), get_first_small_idx(colvar[-100:, 3])))
+        first_idx = min(first_big_idx, first_small_idx)
+        if not np.isinf(first_idx):
+            cur_temps[j] = min(320 + colvar[-100 + int(first_idx), 0] * 0.001, 520)
    
     correct_temps = cur_temps[cur_temps != 0]
     if noise:
