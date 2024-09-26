@@ -73,24 +73,7 @@ def init_GPR(X_train, y_train, yvar_train=None):
     mll = mll.to(X_train)
 
     fit_gpytorch_model(mll, max_retries=1)
-    # Train the model for a fixed number of epochs
-    # NUM_EPOCHS = 100
-    # model.train()
-    # for epoch in range(NUM_EPOCHS):
-    #     # clear gradients
-    #     optimizer.zero_grad()
-    #     # forward pass through the model to obtain the output MultivariateNormal
-    #     output = model(X_train)
-    #     # Compute negative marginal log likelihood
-    #     loss = -mll(output, model.train_targets)
-    #     # back prop gradients
-    #     loss.backward()
-    #     # print every 10 iterations
-    #     if (epoch + 1) % 10 == 0:
-    #         print(
-    #             f"Epoch {epoch+1:>3}/{NUM_EPOCHS} - Loss: {loss.item():>4.3f} "
-    #         )
-    #     optimizer.step()
+    
     # Set the model to evaluation mode
     model.eval()  
     # Print the learned lengthscales of the RBF kernel
@@ -181,11 +164,7 @@ def propose_points(model, y_train, n_points, prev_idxs, round=ROUND, tradeoff=-0
             all_idxs = np.append(all_idxs, new_idx)
             propose_idxs[i] = new_idx
             i += 1
-        # y1_acq = acq(X_ALL.view(-1, 1, d)).flatten().detach().numpy()
-        # y2_acq = new_acq(X_ALL.view(-1, 1, d)).flatten().detach().numpy()
-        # plt.scatter(np.linalg.norm(X_all - X_all[new_idx, :], axis=1), y2_acq - y1_acq)
-        # plt.show()
-
+        
         # Update the acquisition function with the penalty based on the selected point
         j += 1
         acq = new_acq
@@ -277,7 +256,6 @@ def plot_round(round=ROUND, pc=(0, 1)):
         prev_predicted_means = prev_model.posterior(X_ALL).distribution.loc.detach().numpy()
 
     model = load_model(round)
-    # predicted_means = np.diag(model.posterior(X_ALL).distribution.covariance_matrix.detach().numpy())
     predicted_means = model.posterior(X_ALL).distribution.loc.detach().numpy()
 
     
@@ -304,11 +282,9 @@ def plot_round(round=ROUND, pc=(0, 1)):
     cbar = plt.colorbar(c, ax=plt.gca(), extend='both')
     cbar.ax.set_ylabel('Maximum Expected \n Temperature in Region', fontsize=20)
     
-    # plt.scatter(np.nan, np.nan, c="0.5",  s=2, label='available points')
     avail_points, _, _ = np.histogram2d(xa[:, pcx], xa[:, pcy], bins=nbins)
     plt.contour(avail_points.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], levels=[1], alpha=1, linewidths=[2], label='available candidates')
 
-    # plt.scatter(X_ALL[:, pcx], X_ALL[:, pcy], c="0.5", alpha=0.1,  s=2)
 
     plt.scatter(xa[prev_idxs, pcx], xa[prev_idxs, pcy], c=predicted_means[prev_idxs], label='previous', edgecolors='black', s=10, cmap='jet')
     plt.scatter(xa[proposed_idxs, pcx], xa[proposed_idxs, pcy], c="red", label='proposed', edgecolors='black', s=20)
@@ -341,9 +317,7 @@ def plot_round(round=ROUND, pc=(0, 1)):
 
     
     cbar.ax.set_ylabel('Acquisition Function Value', fontsize=20)
-    # plt.scatter(np.nan, np.nan, c="0.5",  s=2, label='available points')
-    
-    # plt.scatter(X_ALL[:, pcx], X_ALL[:, pcy], c="0.5", alpha=0.1,  s=2)
+
     plt.scatter(X_ALL[prev_idxs, pcx], X_ALL[prev_idxs, pcy], c="yellow", label='previous', edgecolors='black',  s=10)
     plt.scatter(X_ALL[proposed_idxs, pcx], X_ALL[proposed_idxs, pcy], c="red", label='proposed', edgecolors='black', s=20)
     plt.xlabel("PC" + str(pcx), fontsize=20)
@@ -402,7 +376,6 @@ def plot_all_temps(plotsize=[6, 4], pc=[0, 1]):
             prev_predicted_means = prev_model.posterior(X_ALL).distribution.loc.detach().numpy()
     
         model = load_model(rnd)
-        # predicted_means = np.diag(model.posterior(X_ALL).distribution.covariance_matrix.detach().numpy())
         predicted_means = model.posterior(X_ALL).distribution.loc.detach().numpy()
     
         
@@ -428,11 +401,9 @@ def plot_all_temps(plotsize=[6, 4], pc=[0, 1]):
         c = ax_.contourf(mean_vals, levels=np.linspace(330, 420, 91), extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]],  vmin=330, vmax=420, cmap='jet')
         
         
-        # plt.scatter(np.nan, np.nan, c="0.5",  s=2, label='available points')
         avail_points, _, _ = np.histogram2d(xa[:, pcx], xa[:, pcy], bins=nbins)
         ax_.contour(avail_points.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], levels=[1], alpha=1, linewidths=[2], label='available candidates')
     
-        # plt.scatter(X_ALL[:, pcx], X_ALL[:, pcy], c="0.5", alpha=0.1,  s=2)
     
         ax_.scatter(xa[prev_idxs, pcx], xa[prev_idxs, pcy], c=predicted_means[prev_idxs], label='previous', edgecolors='black', s=10, cmap='jet')
         ax_.scatter(xa[proposed_idxs, pcx], xa[proposed_idxs, pcy], c="red", label='proposed', edgecolors='black', s=20)
@@ -484,9 +455,7 @@ def plot_all_acq(plotsize=[6, 4], pc=[0, 1]):
         ax_.contour(avail_points.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], levels=[1], alpha=1, colors=['pink'], linewidths=[2],  label='available candidates')
     
         
-        # plt.scatter(np.nan, np.nan, c="0.5",  s=2, label='available points')
         
-        # plt.scatter(X_ALL[:, pcx], X_ALL[:, pcy], c="0.5", alpha=0.1,  s=2)
         ax_.scatter(xa[prev_idxs, pcx], xa[prev_idxs, pcy], c='yellow', label='previous', edgecolors='black', s=10, cmap='jet')
         ax_.scatter(xa[proposed_idxs, pcx], xa[proposed_idxs, pcy], c="red", label='proposed', edgecolors='black', s=20)
         ax_.set_xlabel("PC" + str(pcx), fontsize=20)

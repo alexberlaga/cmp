@@ -65,16 +65,13 @@ def get_atom_features(atom,
     
     formal_charge_enc = one_hot_encoding(int(atom.GetFormalCharge()), [-1, 0, 1, "Extreme"])
     
-    # hybridisation_type_enc = one_hot_encoding(str(atom.GetHybridization()), ["S", "SP", "SP2", "SP3", "OTHER"])
     
     is_in_a_ring_enc = [int(atom.IsInRing())]
     
     is_aromatic_enc = [int(atom.GetIsAromatic())]
         
     atom_feature_vector = atom_type_enc + n_heavy_neighbors_enc + formal_charge_enc + is_in_a_ring_enc + is_aromatic_enc
-    # if use_chirality == True:
-    #     chirality_type_enc = one_hot_encoding(str(atom.GetChiralTag()), ["CHI_UNSPECIFIED", "CHI_TETRAHEDRAL_CW", "CHI_TETRAHEDRAL_CCW", "CHI_OTHER"])
-    #     atom_feature_vector += chirality_type_enc
+
     
     if hydrogens_implicit == True:
         n_hydrogens_enc = one_hot_encoding(int(atom.GetTotalNumHs()), [0, 1, 2, 3, 4])
@@ -94,10 +91,7 @@ def get_bond_features(bond,
     bond_is_in_ring_enc = [int(bond.IsInRing())]
     
     bond_feature_vector = bond_type_enc + bond_is_conj_enc + bond_is_in_ring_enc
-    
-    # if use_stereochemistry == True:
-    #     stereo_type_enc = one_hot_encoding(str(bond.GetStereo()), ["STEREOZ", "STEREOE", "STEREOANY", "STEREONONE"])
-    #     bond_feature_vector += stereo_type_enc
+
     return np.array(bond_feature_vector)
 
 def make_fingerprints():
@@ -125,7 +119,6 @@ def make_atompair_fingerprints():
         mol = Chem.MolFromPDBFile("all_pdbs/" + pep + ".pdb")
         fp1 = GetHashedAtomPairFingerprint(mol)
         fingerprints[i] = np.array([b for b in fp1])
-        # fingerprints[i, 2048:] = seq_encode([pep])
     
     fingerprints = fingerprints[:, ~np.all(fingerprints == 0, axis=0)]
     if len(np.unique(fingerprints, axis=0)) < len(fingerprints):
