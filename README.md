@@ -10,5 +10,5 @@ Code used for the active learning cycle that optimizes the sequence with the mos
 4. check_finished.py: Code to check whether a certain round of simulation is finished.   
 5. encoding.py: Code to create atom-pair fingerprints for every peptoid within our design space.   
 6. fingerprints.npy and fingerprints_pca.pt: Respectively, a numpy file containing atom-pair fingerprints of each peptoid within our design space, and a PyTorch Tensor with the top-10 principal compoenent embeddings of each of these fingerpints.   
-7. generate.py: code to generate PDB files of all the peptoids within our design space. Uses the structure generator I created in the repo https://github.com/UWPRG/mftoid-rev-residues.
-8. tm_bo.ipynb: notebook I use to actually run the rounds of Bayesian Optimization.   
+7. generate.py: code to generate PDB files of all the peptoids within our design space. Uses the structure generator we created as part of the MoSiC-CGenFF-NTOID simulation package: https://github.com/UWPRG/mftoid-rev-residues.
+8. tm_bo.ipynb: notebook to actually run the rounds of Bayesian Optimization.   
